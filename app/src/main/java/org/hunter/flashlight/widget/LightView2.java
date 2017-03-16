@@ -2,24 +2,27 @@ package org.hunter.flashlight.widget;
 
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.hardware.Camera;
-import android.hardware.Camera.Parameters;
+import android.hardware.camera2.CameraAccessException;
+import android.hardware.camera2.CameraManager;
+import android.os.Build;
 import android.util.AttributeSet;
 import android.view.View;
-import android.view.View.OnClickListener;
 
-public class LightBkView extends View implements OnClickListener {
-
-    private Camera camera = Camera.open();
-    private Paint paint = new Paint();
-    private Paint paint1 = new Paint();
+public class LightView2 extends View implements View.OnClickListener {
     private int x = 0;
     private int y = 0;
+    private CameraManager mCameraManager;
+    private String mCameraId;
     private boolean islight;
 
-    public LightBkView(Context context, AttributeSet set) {
+    public LightView2(Context context, AttributeSet set) {
         super(context, set);
+        mCameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
+        try {
+            mCameraId = mCameraManager.getCameraIdList()[0];
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -28,21 +31,6 @@ public class LightBkView extends View implements OnClickListener {
         int heigth = this.getHeight();
         x = width / 2;
         y = heigth / 2;
-        if (!islight) {
-        /*paint.setColor(Color.BLUE);
-		canvas.drawCircle(x, y, 60, paint);
-		paint1.setColor(Color.RED);
-		paint1.setTextSize(20);*/
-            //canvas.drawText("�������", x-50, y, paint1);
-            invalidate();
-        } else {
-			/*paint.setColor(Color.WHITE);
-			canvas.drawCircle(x, y, 60, paint);
-			paint1.setColor(Color.RED);
-			paint1.setTextSize(20);*/
-            //canvas.drawText("�ر������", x-50, y, paint1);
-            invalidate();
-        }
     }
 
     @Override
@@ -79,16 +67,35 @@ public class LightBkView extends View implements OnClickListener {
     @Override
     public void onClick(View v) {
         if (!islight) {
-            Parameters mParameters = camera.getParameters();
-            mParameters.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
-            camera.setParameters(mParameters);
+            turnOnFlashLight();
             islight = true;
         } else {
-            Parameters mParameters = camera.getParameters();
-            mParameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
-            camera.setParameters(mParameters);
+            turnOffFlashLight();
             islight = false;
         }
     }
 
+    public void turnOnFlashLight() {
+
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                mCameraManager.setTorchMode(mCameraId, true);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public void turnOffFlashLight() {
+
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                mCameraManager.setTorchMode(mCameraId, false);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }
