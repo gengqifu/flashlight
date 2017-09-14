@@ -17,10 +17,6 @@ import java.util.TimerTask;
 public class LightBkView extends View implements OnClickListener {
 
     private Camera camera = Camera.open();
-    private Paint paint = new Paint();
-    private Paint paint1 = new Paint();
-    private int x = 0;
-    private int y = 0;
     private boolean islight = false;
     private FlashMode flashMode = FlashMode.OFF;
     private Timer timer;
@@ -32,10 +28,6 @@ public class LightBkView extends View implements OnClickListener {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        int width = this.getWidth();
-        int heigth = this.getHeight();
-        x = width / 2;
-        y = heigth / 2;
         if (!islight) {
             invalidate();
         } else {

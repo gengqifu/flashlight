@@ -4,5 +4,5 @@ public enum FlashMode {
     ON,
     OFF,
     FLICKER_SLOW,
-    FLICKER_FAST;
+    FLICKER_FAST
 }

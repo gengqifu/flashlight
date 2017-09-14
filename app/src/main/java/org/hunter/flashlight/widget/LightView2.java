@@ -15,8 +15,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class LightView2 extends View implements View.OnClickListener {
-    private int x = 0;
-    private int y = 0;
     private CameraManager mCameraManager;
     private String mCameraId;
     private boolean islight = false;
@@ -39,8 +37,6 @@ public class LightView2 extends View implements View.OnClickListener {
     protected void onDraw(Canvas canvas) {
         int width = this.getWidth();
         int heigth = this.getHeight();
-        x = width / 2;
-        y = heigth / 2;
     }
 
     @Override
