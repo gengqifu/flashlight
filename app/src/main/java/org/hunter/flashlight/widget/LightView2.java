@@ -5,16 +5,26 @@ import android.graphics.Canvas;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraManager;
 import android.os.Build;
+import android.support.annotation.RequiresApi;
 import android.util.AttributeSet;
 import android.view.View;
+
+import org.hunter.flashlight.util.FlashMode;
+
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class LightView2 extends View implements View.OnClickListener {
     private int x = 0;
     private int y = 0;
     private CameraManager mCameraManager;
     private String mCameraId;
-    private boolean islight;
+    private boolean islight = false;
+    private FlashMode flashMode = FlashMode.OFF;
+    private Timer timer;
+    private TimerTask task;
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public LightView2(Context context, AttributeSet set) {
         super(context, set);
         mCameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
@@ -66,12 +76,27 @@ public class LightView2 extends View implements View.OnClickListener {
 
     @Override
     public void onClick(View v) {
-        if (!islight) {
-            turnOnFlashLight();
-            islight = true;
-        } else {
-            turnOffFlashLight();
-            islight = false;
+        switch (flashMode) {
+            case OFF:
+                flashMode = FlashMode.ON;
+                turnOnFlashLight();
+                break;
+            case ON:
+                flashMode = FlashMode.FLICKER_SLOW;
+                flicker(300);
+                break;
+            case FLICKER_SLOW:
+                timer.cancel();
+                flashMode = FlashMode.FLICKER_FAST;
+                flicker(100);
+                break;
+            case FLICKER_FAST:
+                timer.cancel();
+                flashMode = FlashMode.OFF;
+                turnOffFlashLight();
+                break;
+            default:
+                break;
         }
     }
 
@@ -86,7 +111,6 @@ public class LightView2 extends View implements View.OnClickListener {
         }
     }
 
-
     public void turnOffFlashLight() {
 
         try {
@@ -96,6 +120,25 @@ public class LightView2 extends View implements View.OnClickListener {
 
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    public void flicker(long period) {
+        timer = new Timer();
+        task = new MyTimerTask();
+        timer.schedule(task, 0, period);
+    }
+
+    private class MyTimerTask extends TimerTask {
+        @Override
+        public void run() {
+            if (islight) {
+                turnOffFlashLight();
+                islight = false;
+            } else {
+                turnOnFlashLight();
+                islight = true;
+            }
         }
     }
 }

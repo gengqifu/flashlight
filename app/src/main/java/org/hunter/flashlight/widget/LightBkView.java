@@ -9,6 +9,11 @@ import android.util.AttributeSet;
 import android.view.View;
 import android.view.View.OnClickListener;
 
+import org.hunter.flashlight.util.FlashMode;
+
+import java.util.Timer;
+import java.util.TimerTask;
+
 public class LightBkView extends View implements OnClickListener {
 
     private Camera camera = Camera.open();
@@ -16,7 +21,10 @@ public class LightBkView extends View implements OnClickListener {
     private Paint paint1 = new Paint();
     private int x = 0;
     private int y = 0;
-    private boolean islight;
+    private boolean islight = false;
+    private FlashMode flashMode = FlashMode.OFF;
+    private Timer timer;
+    private TimerTask task;
 
     public LightBkView(Context context, AttributeSet set) {
         super(context, set);
@@ -29,18 +37,8 @@ public class LightBkView extends View implements OnClickListener {
         x = width / 2;
         y = heigth / 2;
         if (!islight) {
-        /*paint.setColor(Color.BLUE);
-		canvas.drawCircle(x, y, 60, paint);
-		paint1.setColor(Color.RED);
-		paint1.setTextSize(20);*/
-            //canvas.drawText("�������", x-50, y, paint1);
             invalidate();
         } else {
-			/*paint.setColor(Color.WHITE);
-			canvas.drawCircle(x, y, 60, paint);
-			paint1.setColor(Color.RED);
-			paint1.setTextSize(20);*/
-            //canvas.drawText("�ر������", x-50, y, paint1);
             invalidate();
         }
     }
@@ -78,17 +76,58 @@ public class LightBkView extends View implements OnClickListener {
 
     @Override
     public void onClick(View v) {
-        if (!islight) {
-            Parameters mParameters = camera.getParameters();
-            mParameters.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
-            camera.setParameters(mParameters);
-            islight = true;
-        } else {
-            Parameters mParameters = camera.getParameters();
-            mParameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
-            camera.setParameters(mParameters);
-            islight = false;
+        switch (flashMode) {
+            case OFF:
+                flashMode = FlashMode.ON;
+                turnOnFlashLight();
+                break;
+            case ON:
+                flashMode = FlashMode.FLICKER_SLOW;
+                flicker(300);
+                break;
+            case FLICKER_SLOW:
+                timer.cancel();
+                flashMode = FlashMode.FLICKER_FAST;
+                flicker(100);
+                break;
+            case FLICKER_FAST:
+                timer.cancel();
+                flashMode = FlashMode.OFF;
+                turnOffFlashLight();
+                break;
+            default:
+                break;
         }
     }
 
+    private void turnOnFlashLight() {
+        Parameters mParameters = camera.getParameters();
+        mParameters.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
+        camera.setParameters(mParameters);
+    }
+
+    private void turnOffFlashLight() {
+        Parameters mParameters = camera.getParameters();
+        mParameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
+        camera.setParameters(mParameters);
+    }
+
+    private void flicker(long period) {
+        timer = new Timer();
+        task = new MyTimerTask();
+        timer.schedule(task, 0, period);
+    }
+
+    private class MyTimerTask extends TimerTask {
+        @Override
+        public void run() {
+            if (islight) {
+                turnOffFlashLight();
+                islight = false;
+            } else {
+                turnOnFlashLight();
+                islight = true;
+            }
+        }
+    }
 }
